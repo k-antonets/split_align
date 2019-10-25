@@ -46,9 +46,12 @@ func (s SeqSplitter) Cumulate() []int {
 func (s SeqSplitter) Split(old_record *fastx.Record) ([]*fastx.Record, error) {
 	r := make([]*fastx.Record, len(s))
 	cum := s.Cumulate()
+	name := string(old_record.Name)
+
+	fmt.Printf("Processing record with name: <%s>", name)
 
 	for i, se := range s {
-		name := string(old_record.Name)
+
 		new_name := strings.Join([]string{name, se.Name}, "_")
 
 		rec, err := fastx.NewRecordWithSeq(old_record.ID, []byte(new_name), old_record.Seq.SubSeq(cum[i], cum[i+1]))
@@ -78,7 +81,7 @@ func (ss SeqSplitter) SplitAndWrite(outdir string, records <-chan *fastx.Record)
 	}
 
 	writeEntity := func(name string, records []*fastx.Record) error {
-		filename := name + ".fasta"
+		filename := strings.Replace(name+".fasta", " ", "_", -1)
 		filename = path.Join(outdir, filename)
 
 		f, e := xopen.Wopen(filename)
