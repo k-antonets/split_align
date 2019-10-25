@@ -48,7 +48,7 @@ func (s SeqSplitter) Split(old_record *fastx.Record) ([]*fastx.Record, error) {
 	cum := s.Cumulate()
 	name := string(old_record.Name)
 
-	fmt.Printf("Processing record with name: <%s>", name)
+	fmt.Printf("Processing record with name: <%s>\n", name)
 
 	for i, se := range s {
 
@@ -154,7 +154,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			out <- r
+			out <- r.Clone()
 		}
 		close(rchan)
 	}(*align, rchan)
