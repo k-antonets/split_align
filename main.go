@@ -63,19 +63,8 @@ func (s SeqSplitter) Split(old_record *fastx.Record) ([]*fastx.Record, error) {
 }
 
 func (ss SeqSplitter) SplitAndWrite(outdir string, records <-chan *fastx.Record) error {
-	fw := make([]*xopen.Writer, len(ss))
 
-	for i, se := range ss {
-		filename := se.Name + ".fasta"
-		filename = path.Join(outdir, filename)
-
-		f, e := xopen.Wopen(filename)
-		if e != nil {
-			return e
-		}
-		fw[i] = f
-		defer fw[i].Close()
-	}
+	seqdir := make(map[string][]*fastx.Record)
 
 	for r := range records {
 		seqs, e := ss.Split(r)
@@ -84,7 +73,29 @@ func (ss SeqSplitter) SplitAndWrite(outdir string, records <-chan *fastx.Record)
 		}
 
 		for i, s := range seqs {
-			s.FormatToWriter(fw[i], 0)
+			seqdir[ss[i].Name] = append(seqdir[ss[i].Name], s)
+		}
+	}
+
+	writeEntity := func(name string, records []*fastx.Record) error {
+		filename := name + ".fasta"
+		filename = path.Join(outdir, filename)
+
+		f, e := xopen.Wopen(filename)
+		if e != nil {
+			return e
+		}
+		defer f.Close()
+
+		for _, r := range records {
+			r.FormatToWriter(f, 0)
+		}
+		return nil
+	}
+
+	for _, se := range ss {
+		if err := writeEntity(se.Name, seqdir[se.Name]); err != nil {
+			return err
 		}
 	}
 
