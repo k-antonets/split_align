@@ -37,7 +37,7 @@ func (s SeqSplitter) Cumulate() []int {
 	r[0] = 1
 
 	for i, se := range s {
-		r[i+1] = r[i] + se.Len - 1
+		r[i+1] = r[i] + se.Len
 	}
 
 	return r
@@ -54,7 +54,7 @@ func (s SeqSplitter) Split(old_record *fastx.Record) ([]*fastx.Record, error) {
 
 		new_name := strings.Join([]string{name, se.Name}, "_")
 
-		rec, err := fastx.NewRecordWithSeq(old_record.ID, []byte(new_name), old_record.Seq.SubSeq(cum[i], cum[i+1]))
+		rec, err := fastx.NewRecordWithSeq(old_record.ID, []byte(new_name), old_record.Seq.SubSeq(cum[i], cum[i+1]-1))
 		if err != nil {
 			return nil, err
 		}
